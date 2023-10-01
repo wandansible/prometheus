@@ -1,0 +1,269 @@
+---
+argument_specs:
+  main:
+    short_description: Install and configure prometheus
+    options:
+      prometheus_listen:
+        description: Listen address and port
+        type: str
+        default: localhost:9090
+
+      prometheus_external_url:
+        description: |
+          The URL under which Prometheus is externally reachable
+          (for example, if Prometheus is served via a reverse proxy).
+          Used for generating relative and absolute links back to Prometheus itself.
+        type: str
+
+      prometheus_log_level:
+        description: Only log messages with the given severity or above
+        type: str
+        default: warn
+        choices:
+          - debug
+          - info
+          - warn
+          - error
+
+      prometheus_log_format:
+        description: Output format of log messages
+        type: str
+        default: logfmt
+        choices:
+          - logfmt
+          - json
+
+      prometheus_port:
+        description: Listen port
+        type: int
+        default: 9090
+
+      prometheus_manage_user:
+        description: If true, add prometheus unix user and group
+        type: bool
+        default: true
+
+      prometheus_user:
+        description: Name of the prometheus unix user
+        type: str
+        default: prometheus
+
+      prometheus_group:
+        description: Name of the prometheus unix group
+        type: str
+        default: prometheus
+
+      prometheus_install:
+        description: If true, install prometheus
+        type: bool
+        default: true
+
+      prometheus_bin_dir:
+        description: Directory for the prometheus binaries
+        type: str
+        default: /opt/prometheus/
+
+      prometheus_src_dir:
+        description: Directory for the downloaded prometheus src archive
+        type: str
+        default: /opt/prometheus/src
+
+      prometheus_strip_components:
+        description: Strip NUMBER leading components from file names on extraction
+        type: int
+        default: 1
+
+      prometheus_src_files:
+        description: List of files to extract from the source archive
+        type: list
+        elements: str
+        default:
+          - prometheus
+          - promtool
+          - consoles
+          - console_libraries
+
+      prometheus_clean_src_dir:
+        description: Remove old downloaded archive files from prometheus src directory
+        type: bool
+        default: true
+
+      prometheus_cli_tools:
+        description: List of CLI tool binaries that should have symlinks created in /usr/local/bin/
+        type: list
+        default:
+          - promtool
+
+      prometheus_github_org:
+        description: Name of organisation for prometheus github repository
+        type: str
+        default: prometheus
+
+      prometheus_github_repo:
+        description: Name of prometheus github repository
+        type: str
+        default: prometheus
+
+      prometheus_github_checksum_filename:
+        description: Filename for the prometheus package checksums file on github
+        type: str
+        default: sha256sums.txt
+
+      prometheus_checksum_type:
+        description: The prometheus package checksum type
+        type: str
+        default: sha256
+
+      prometheus_version:
+        description: Version to install (use "latest" for the latest version)
+        type: str
+        default: latest
+
+      prometheus_arch_map:
+        description: |
+          Mapping of the possible values of ansible_architecture
+          to the prometheus package architectures
+        type: dict
+
+      prometheus_flags:
+        description: Contents or list of flags to run prometheus with
+        type: raw
+
+      prometheus_extra_flags:
+        description: Extra flags to run prometheus with
+        type: dict
+
+      prometheus_config_dir:
+        description: Directory for prometheus configuration
+        type: str
+        default: /etc/prometheus
+
+      prometheus_config_file:
+        description: Filename for prometheus config file
+        type: str
+        default: prometheus.yml
+
+      prometheus_config:
+        description: Contents of the prometheus config file, as string or dict
+        type: raw
+
+      prometheus_db_dir:
+        description: Directory for prometheus database
+        type: str
+        default: /var/lib/prometheus
+
+      prometheus_storage_retention:
+        description: |
+          How long to keep data for, specify as a number followed by time unit.
+          The units supported are y, w, d, h, m, s, ms.
+        type: str
+
+      prometheus_storage_retention_size:
+        description: |
+          Maximum number of bytes that can be stored for blocks.
+          A unit is required, supported units are B, KB, MB, GB, TB, PB, EB.
+          Based on powers-of-2, so 1KB is 1024B.
+        type: str
+
+      prometheus_scrape_config_dir:
+        description: Directory for prometheus scrape config files
+        type: str
+        default: /etc/prometheus/scrape_configs
+
+      prometheus_scrape_config_files:
+        description: List of prometheus scrape config files to create
+        type: list
+        elements: dict
+        options:
+          name:
+            description: Name of scrape config file
+            type: str
+            required: true
+          scrape_configs:
+            description: List of prometheus scrape config, as string or list
+            type: raw
+            required: true
+
+      prometheus_sd_dir:
+        description: Directory for prometheus service discovery files
+        type: str
+        default: /etc/prometheus/file_sd
+
+      prometheus_sd_files:
+        description: List of prometheus service discovery files to create
+        type: list
+        elements: dict
+        options:
+          name:
+            description: Name of service discovery file
+            type: str
+            required: true
+          static_configs:
+            description: List of prometheus file service discovery config, as string or list
+            type: raw
+            required: true
+
+      prometheus_rules_dir:
+        description: Directory for prometheus recording and alerting rule files
+        type: str
+        default: /etc/prometheus/rules
+
+      prometheus_recording_rule_files:
+        description: List of prometheus recording rule files to create
+        type: list
+        elements: dict
+        options:
+          name:
+            description: Name of recording rule group
+            type: str
+            required: true
+          rules:
+            description: List of rule config, as string or list
+            type: raw
+            required: true
+
+      prometheus_alerting_rule_files:
+        description: List of prometheus alerting rule files to create
+        type: list
+        elements: dict
+        default:
+          - name: "general"
+            rules: "{{ prometheus_alerting_rules_general }}"
+          - name: "prometheus"
+            rules: "{{ prometheus_alerting_rules_prometheus }}"
+          - name: "alertmanager"
+            rules: "{{ prometheus_alerting_rules_alertmanager }}"
+          - name: "node"
+            rules: "{{ prometheus_alerting_rules_node }}"
+          - name: "blackbox"
+            rules: "{{ prometheus_alerting_rules_blackbox }}"
+        options:
+          name:
+            description: Name of alerting rule group
+            type: str
+            required: true
+          rules:
+            description: List of rule config, as string or list
+            type: raw
+            required: true
+
+      prometheus_alerting_rules_general:
+        description: List of general prometheus alerting rule config, as string or list
+        type: raw
+
+      prometheus_alerting_rules_prometheus:
+        description: List of prometheus alerting rule config for prometheus, as string or list
+        type: raw
+
+      prometheus_alerting_rules_alertmanager:
+        description: List of prometheus alerting rule config for alertmanager, as string or list
+        type: raw
+
+      prometheus_alerting_rules_node:
+        description: List of prometheus alerting rule config for node exporter, as string or list
+        type: raw
+
+      prometheus_alerting_rules_blackbox:
+        description: |
+          List of prometheus alerting rule config for blackbox exporter, as string or list
+        type: raw
