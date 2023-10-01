@@ -1,0 +1,76 @@
+---
+- name: Converge
+  hosts: all
+  tasks:
+    - name: "Include wandansible.prometheus"
+      ansible.builtin.include_role:
+        name: "wandansible.prometheus"
+      vars:
+        prometheus_config:
+          global:
+            scrape_interval: 15s
+            evaluation_interval: 15s
+
+          alerting:
+            alertmanagers:
+              - static_configs:
+                  - targets:
+                      - localhost:9093
+
+          rule_files:
+            - "{{ prometheus_rules_dir }}/recording/*.yml"
+            - "{{ prometheus_rules_dir }}/alerting/*.yml"
+
+          scrape_config_files:
+            - "{{ prometheus_scrape_config_dir }}/*.yml"
+
+        prometheus_scrape_config_files:
+          - name: prometheus
+            scrape_configs:
+              - job_name: "prometheus"
+                relabel_configs:
+                  - source_labels: [__address__]
+                    target_label: instance
+                  - source_labels: [__address__]
+                    target_label: __address__
+                    regex: "(.+)"
+                    replacement: "${1}:9090"
+                static_configs:
+                  - targets:
+                      - localhost
+
+          - name: alertmanager
+            scrape_configs:
+              - job_name: "alertmanager"
+                relabel_configs:
+                  - source_labels: [__address__]
+                    target_label: instance
+                  - source_labels: [__address__]
+                    target_label: __address__
+                    regex: "(.+)"
+                    replacement: "${1}:9093"
+                static_configs:
+                  - targets:
+                      - localhost
+
+          - name: node
+            scrape_configs:
+              - job_name: node
+                relabel_configs:
+                  - source_labels: [__address__]
+                    target_label: instance
+                  - source_labels: [__address__]
+                    target_label: __address__
+                    regex: "(.+)"
+                    replacement: "${1}:9100"
+                file_sd_configs:
+                  - files:
+                      - "{{ prometheus_sd_dir }}/node.yml"
+
+        prometheus_sd_files:
+          - name: node
+            static_configs:
+              - targets:
+                  - localhost
+                labels:
+                  environment: local
