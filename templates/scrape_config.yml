@@ -1,0 +1,9 @@
+---
+# {{ ansible_managed }}
+
+scrape_configs:
+{% if item.scrape_configs is string %}
+  {{ item.scrape_configs | indent(2) | trim }}
+{% elif item.scrape_configs is sequence %}
+  {{ item.scrape_configs | to_nice_yaml(indent=2, sort_keys=false) | indent(2) | trim }}
+{% endif %}

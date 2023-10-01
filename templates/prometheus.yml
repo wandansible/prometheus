@@ -1,0 +1,8 @@
+---
+# {{ ansible_managed }}
+
+{% if prometheus_config is string %}
+{{ prometheus_config | trim }}
+{% elif prometheus_config is mapping %}
+{{ prometheus_config | to_nice_yaml(indent=2, sort_keys=false) | trim }}
+{% endif %}

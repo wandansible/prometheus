@@ -1,0 +1,14 @@
+---
+- name: "Install prometheus"
+  ansible.builtin.include_tasks:
+    file: install.yml
+  when: prometheus_install | bool
+
+- name: "Configure prometheus"
+  ansible.builtin.include_tasks:
+    file: configure.yml
+
+- name: "Enable prometheus"
+  ansible.builtin.include_tasks:
+    file: service.yml
+  when: prometheus_install | bool

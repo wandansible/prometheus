@@ -1,0 +1,11 @@
+---
+# {{ ansible_managed }}
+
+groups:
+  - name: "{{ item.name }}"
+    rules:
+{% if item.rules is string %}
+      {{ item.rules | indent(6) | trim }}
+{%- elif item.rules is sequence %}
+      {{ item.rules | to_nice_yaml(indent=2, sort_keys=false, default_style=">") | indent(6) | trim }}
+{%- endif %}

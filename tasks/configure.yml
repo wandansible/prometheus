@@ -1,0 +1,122 @@
+---
+- name: "Create configuration directory"
+  ansible.builtin.file:
+    path: "{{ prometheus_config_dir }}"
+    state: directory
+    owner: root
+    group: "{{ prometheus_group }}"
+    mode: u=rwx,g=rx,o=rx
+
+- name: "Create database directory"
+  ansible.builtin.file:
+    path: "{{ prometheus_db_dir }}"
+    state: directory
+    owner: "{{ prometheus_user }}"
+    group: "{{ prometheus_group }}"
+    mode: u=rwx,g=rx,o=
+
+- name: "Configure prometheus"
+  ansible.builtin.template:
+    src: prometheus.yml
+    dest: "{{ prometheus_config_dir }}/{{ prometheus_config_file }}"
+    owner: "root"
+    group: "{{ prometheus_group }}"
+    mode: u=rw,g=r,o=
+  when: prometheus_config != ""
+  notify: "reload prometheus"
+
+- name: "Create scrape config files directory"
+  ansible.builtin.file:
+    path: "{{ prometheus_scrape_config_dir }}"
+    state: directory
+    owner: "root"
+    group: "{{ prometheus_group }}"
+    mode: u=rwx,g=rx,o=rx
+  when: prometheus_scrape_config_files | length >= 1
+
+- name: "Create scrape config files"
+  ansible.builtin.template:
+    src: scrape_config.yml
+    dest: "{{ prometheus_scrape_config_dir }}/{{ item.name }}.yml"
+    owner: "root"
+    group: "{{ prometheus_group }}"
+    mode: u=rw,g=r,o=
+  loop: "{{ prometheus_scrape_config_files }}"
+  loop_control:
+    label: "{{ item.name }}"
+  notify: "reload prometheus"
+
+- name: "Create service discovery directory"
+  ansible.builtin.file:
+    path: "{{ prometheus_sd_dir }}"
+    state: directory
+    owner: "root"
+    group: "{{ prometheus_group }}"
+    mode: u=rwx,g=rx,o=rx
+  when: prometheus_sd_files | length >= 1
+
+- name: "Create service discovery files"
+  ansible.builtin.template:
+    src: file_sd.yml
+    dest: "{{ prometheus_sd_dir }}/{{ item.name }}.yml"
+    owner: "root"
+    group: "{{ prometheus_group }}"
+    mode: u=rw,g=r,o=r
+  loop: "{{ prometheus_sd_files }}"
+  loop_control:
+    label: "{{ item.name }}"
+  notify: "reload prometheus"
+
+- name: "Create rule directories"
+  when: >-
+    prometheus_recording_rule_files | length >= 1 or prometheus_alerting_rule_files | length >= 1
+  block:
+    - name: "Create rule base directory"
+      ansible.builtin.file:
+        path: "{{ prometheus_rules_dir }}"
+        state: directory
+        owner: "root"
+        group: "{{ prometheus_group }}"
+        mode: u=rwx,g=rx,o=rx
+
+    - name: "Create rule subdirectories"
+      ansible.builtin.file:
+        path: "{{ prometheus_rules_dir }}/{{ item }}"
+        state: directory
+        owner: "root"
+        group: "{{ prometheus_group }}"
+        mode: u=rwx,g=rx,o=rx
+      loop:
+        - "recording"
+        - "alerting"
+
+- name: "Create recording rules files"
+  ansible.builtin.template:
+    src: rules.yml
+    dest: "{{ prometheus_rules_dir }}/recording/{{ item.name }}.yml"
+    owner: "root"
+    group: "{{ prometheus_group }}"
+    mode: u=rw,g=r,o=r
+  loop: "{{ prometheus_recording_rule_files }}"
+  loop_control:
+    label: "{{ item.name }}"
+  notify: "reload prometheus"
+
+- name: "Create alerting rules files"
+  ansible.builtin.template:
+    src: rules.yml
+    dest: "{{ prometheus_rules_dir }}/alerting/{{ item.name }}.yml"
+    owner: "root"
+    group: "{{ prometheus_group }}"
+    mode: u=rw,g=r,o=r
+  loop: "{{ prometheus_alerting_rule_files }}"
+  loop_control:
+    label: "{{ item.name }}"
+  notify: "reload prometheus"
+
+- name: "Validate prometheus configuration file"
+  ansible.builtin.command:
+    cmd: >-
+      promtool check config "{{ prometheus_config_dir }}/{{ prometheus_config_file }}"
+  register: _promtool_check_config
+  changed_when: _promtool_check_config.rc != 0

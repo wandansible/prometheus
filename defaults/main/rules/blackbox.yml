@@ -1,0 +1,98 @@
+---
+prometheus_alerting_rules_blackbox: !unsafe |-
+  - alert: BlackboxFailedReload
+    annotations:
+      description: >-
+        Configuration has failed to load for {{ $labels.instance }}.
+      summary: Reloading a Blackbox configuration has failed.
+    expr: |-
+      # Without max_over_time, failed scrapes could create false negatives, see
+      # https://www.robustperception.io/alerting-on-gauges-in-prometheus-2-0 for details.
+      max_over_time(blackbox_exporter_config_last_reload_successful{job="blackbox"}[5m]) == 0
+    for: 10m
+    labels:
+      severity: critical
+
+  - alert: BlackboxInstanceProbeFailed
+    annotations:
+      message: >-
+        {{ printf "%.4g" $value }}% of the blackbox probes
+        to target {{ $labels.instance }} are failing.
+      summary: One or more instances have failing blackbox probes.
+      runbook_url: >-
+        https://docs.kubermatic.com/kubermatic/main/cheat-sheets/alerting-runbook/#alert-httpprobefailed
+    expr: |-
+      (
+        count(probe_success{job=~"blackbox.*"} == 0) BY (instance)
+        /
+        count(probe_success{job=~"blackbox.*"}) BY (instance)
+      ) * 100
+      > 10
+    for: 5m
+    labels:
+      severity: critical
+
+  - alert: BlackboxDNSProbeFailed
+    annotations:
+      message: >-
+        {{ printf "%.4g" $value }}% of the blackbox DNS probes
+        for module {{ $labels.blackbox_module }} are failing.
+      summary: One or more instances have failing blackbox DNS probes.
+      runbook_url: >-
+        https://docs.kubermatic.com/kubermatic/main/cheat-sheets/alerting-runbook/#alert-httpprobefailed
+    expr: |-
+      (
+        count(probe_success{job=~"blackbox.*", blackbox_module=~"dns.*"} == 0) BY (blackbox_module)
+        /
+        count(probe_success{job=~"blackbox.*", blackbox_module=~"dns.*"}) BY (blackbox_module)
+      ) * 100
+      > 10
+    for: 5m
+    labels:
+      severity: critical
+
+  - alert: BlackboxProbeSlow
+    annotations:
+      message: >-
+        {{ $labels.instance }} takes {{ $value }} seconds to respond.
+      runbook_url: >-
+        https://docs.kubermatic.com/kubermatic/main/cheat-sheets/alerting-runbook/#alert-httpprobeslow
+    expr: |-
+      sum by (instance) (probe_duration_seconds{job=~"blackbox.*"}) > 3
+    for: 15m
+    labels:
+      severity: warning
+
+  - alert: BlackboxHttpProbeSlow
+    annotations:
+      message: >-
+        {{ $labels.instance }} takes {{ $value }} seconds to respond.
+      runbook_url: >-
+        https://docs.kubermatic.com/kubermatic/main/cheat-sheets/alerting-runbook/#alert-httpprobeslow
+    expr: |-
+      sum by (instance) (probe_http_duration_seconds{job=~"blackbox.*"}) > 3
+    for: 15m
+    labels:
+      severity: warning
+
+  - alert: BlackboxHttpCertExpiresSoon
+    annotations:
+      message: >-
+        The certificate for {{ $labels.instance }} expires in less than 7 days.
+      runbook_url: >-
+        https://docs.kubermatic.com/kubermatic/main/cheat-sheets/alerting-runbook/#alert-httpcertexpiressoon
+    expr: |-
+      probe_ssl_earliest_cert_expiry{job=~"blackbox.*"} - time() < 7*24*3600
+    labels:
+      severity: warning
+
+  - alert: BlackboxHttpCertExpiresVerySoon
+    annotations:
+      message: >-
+        The certificate for {{ $labels.instance }} expires in less than 24 hours.
+      runbook_url: >-
+        https://docs.kubermatic.com/kubermatic/main/cheat-sheets/alerting-runbook/#alert-httpcertexpiresverysoon
+    expr: |-
+      probe_ssl_earliest_cert_expiry{job=~"blackbox.*"} - time() < 24*3600
+    labels:
+      severity: critical

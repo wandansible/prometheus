@@ -1,0 +1,11 @@
+#jinja2: trim_blocks: "false", lstrip_blocks: "true"
+---
+# {{ ansible_managed }}
+
+{% if item.static_configs is string %}
+{{ item.static_configs | trim }}
+{% elif item.static_configs is sequence %}
+  {% for static_config in item.static_configs %}
+- {{ static_config | to_nice_yaml(indent=2, sort_keys=false) | indent(2) | trim }}
+  {% endfor %}
+{% endif %}

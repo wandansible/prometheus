@@ -1,0 +1,122 @@
+---
+- name: "Add system group"
+  ansible.builtin.group:
+    name: "{{ prometheus_group }}"
+    system: true
+    state: present
+  when: prometheus_manage_user
+
+- name: "Add system user"
+  ansible.builtin.user:
+    name: "{{ prometheus_user }}"
+    group: "{{ prometheus_group }}"
+    system: true
+    shell: /usr/sbin/nologin
+    home: "{{ prometheus_bin_dir }}"
+    createhome: false
+    state: present
+  when: prometheus_manage_user
+
+- name: "Create directories"
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: u=rwx,g=rx,o=rx
+  loop:
+    - "{{ prometheus_bin_dir }}"
+    - "{{ prometheus_src_dir }}"
+
+- name: "Get GitHub release information"
+  ansible.builtin.uri:
+    url: >-
+      {{ "https://api.github.com/repos/" + prometheus_github_org + "/" + prometheus_github_repo
+         + "/releases"
+         + ("/tags" if prometheus_version != "latest" else "") + "/" + prometheus_version }}
+    method: GET
+    return_content: true
+    status_code: 200
+    body_format: json
+  register: _release_info
+
+- name: "Get archive URL from GitHub release"
+  ansible.builtin.set_fact:
+    _prometheus_archive_url: >-
+      {{ _release_info.json.assets
+         | selectattr("name", "search", "prometheus", ignorecase=true)
+         | selectattr("name", "search", "linux", ignorecase=true)
+         | selectattr("name", "search", prometheus_arch_map[ansible_architecture], ignorecase=true)
+         | map(attribute='browser_download_url')
+         | first
+         | default(None) }}
+
+- name: "Get checksum URL from GitHub release"
+  ansible.builtin.set_fact:
+    _prometheus_checksum_url: >-
+      {{ _release_info.json.assets
+         | selectattr("name", "equalto", prometheus_github_checksum_filename)
+         | map(attribute='browser_download_url')
+         | first
+         | default(None) }}
+
+- name: "Set archive filename"
+  ansible.builtin.set_fact:
+    _prometheus_archive_filename: "{{ _prometheus_archive_url | split('/') | last }}"
+
+- name: "Get archive checksum from URL"
+  ansible.builtin.set_fact:
+    _prometheus_archive_checksum: >-
+      {{ lookup('url', _prometheus_checksum_url, wantlist=True)
+         | select('search', _prometheus_archive_filename)
+         | first | default('') | split(' ') | first | default(None) }}
+
+- name: "Download archive"
+  ansible.builtin.get_url:
+    url: "{{ _prometheus_archive_url }}"
+    dest: "{{ prometheus_src_dir }}/{{ _prometheus_archive_filename }}"
+    checksum: "{{ prometheus_checksum_type }}:{{ _prometheus_archive_checksum }}"
+    owner: root
+    group: root
+    mode: u=rw,g=r,o=r
+
+- name: "Extract files from archive"
+  ansible.builtin.unarchive:
+    src: "{{ prometheus_src_dir }}/{{ _prometheus_archive_filename }}"
+    remote_src: true
+    dest: "{{ prometheus_bin_dir }}"
+    extra_opts:
+      - "--strip-components={{ prometheus_strip_components }}"
+      - "--wildcards"
+      - "--no-anchored"
+      - "{{ item }}"
+    owner: root
+    group: root
+  loop: "{{ prometheus_src_files }}"
+  notify: "restart prometheus"
+
+- name: "Create symbolic links for CLI tool binaries in /usr/local/bin"
+  ansible.builtin.file:
+    src: "{{ prometheus_bin_dir }}/{{ item }}"
+    dest: "/usr/local/bin/{{ item }}"
+    owner: root
+    group: root
+    state: link
+  loop: "{{ prometheus_cli_tools }}"
+
+- name: Get downloaded archive files
+  ansible.builtin.find:
+    paths: "{{ prometheus_src_dir }}"
+    patterns: "{{ '*' + _prometheus_archive_filename | splitext | last }}"
+  register: _prometheus_src_archives
+
+- name: Remove older downloaded archive files
+  ansible.builtin.file:
+    path: "{{ item['path'] }}"
+    state: absent
+  loop: "{{ _prometheus_src_archives['files'] }}"
+  loop_control:
+    label: "{{ item['path'] }}"
+  when:
+    - "item['path'] | basename != _prometheus_archive_filename"
+    - "prometheus_clean_src_dir"

@@ -1,0 +1,16 @@
+---
+- name: "Add systemd service"
+  ansible.builtin.template:
+    src: systemd.service
+    dest: /etc/systemd/system/prometheus.service
+    owner: root
+    group: root
+    mode: u=rw,g=r,o=r
+  notify: "restart prometheus"
+
+- name: "Start and enable systemd service"
+  ansible.builtin.systemd:
+    name: "prometheus.service"
+    daemon_reload: true
+    enabled: true
+    state: started

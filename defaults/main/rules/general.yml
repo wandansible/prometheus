@@ -1,0 +1,47 @@
+---
+prometheus_alerting_rules_general: !unsafe |-
+  - alert: InstanceDown
+    annotations:
+      description: >-
+        {{ printf "%.4g" $value }}% of the scrape targets on {{ $labels.instance }} are down.
+      summary: One or more instances are unreachable.
+    expr: |-
+      (
+        count(up == 0) BY (instance)
+        /
+        count(up) BY (instance)
+      ) * 100
+      > 10
+    for: 10m
+    labels:
+      severity: critical
+
+  - alert: TargetDown
+    annotations:
+      description: >-
+        {{ printf "%.4g" $value }}% of the {{ $labels.job }} targets are down.
+      runbook_url: https://runbooks.prometheus-operator.dev/runbooks/general/targetdown
+      summary: One or more targets are unreachable.
+    expr: |-
+      (
+        count(up == 0) BY (job)
+        /
+        count(up) BY (job)
+      ) * 100
+      > 10
+    for: 10m
+    labels:
+      severity: warning
+
+  - alert: Watchdog
+    annotations:
+      description: >-
+        This is an alert meant to ensure that the entire alerting pipeline is functional.
+        This alert is always firing, therefore it should always be firing in Alertmanager
+        and always fire against a receiver.
+      runbook_url: https://runbooks.prometheus-operator.dev/runbooks/general/watchdog
+      summary: >-
+        An alert that should always be firing to certify that Alertmanager is working properly.
+    expr: vector(1)
+    labels:
+      severity: none

@@ -1,0 +1,13 @@
+---
+- name: restart prometheus
+  ansible.builtin.service:
+    name: prometheus.service
+    state: restarted
+  register: _restart_prometheus
+  notify: reload prometheus
+
+- name: reload prometheus
+  ansible.builtin.service:
+    name: prometheus.service
+    state: reloaded
+  when: _restart_prometheus is not defined
