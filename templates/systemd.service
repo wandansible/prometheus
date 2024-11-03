@@ -1,9 +1,14 @@
-#jinja2: trim_blocks: "false", lstrip_blocks: "true"
 # {{ ansible_managed }}
 
 [Unit]
 Description=Monitoring system and time series database
 Documentation=https://prometheus.io/docs/introduction/overview/
+
+ConditionFileIsExecutable={{ prometheus_bin_dir }}/prometheus
+
+StartLimitIntervalSec=0
+
+Wants=network-online.target
 After=network-online.target
 Requires=local-fs.target
 After=local-fs.target
@@ -12,28 +17,21 @@ After=local-fs.target
 Type=simple
 User={{ prometheus_user }}
 Group={{ prometheus_group }}
+EnvironmentFile=-/etc/default/prometheus
+ExecStart={{ prometheus_bin_dir }}/prometheus \
+          $PROMETHEUS_ARGS
 ExecReload=/bin/kill -HUP ${MAINPID}
-ExecStart={{ prometheus_bin_dir }}/prometheus{% if prometheus_flags | length > 0 %} \
-    {% if prometheus_flags is string %}
-    {{ prometheus_flags | trim | indent(4) }}
-    {% else %}
-    {{ prometheus_flags | join(' \\\n') | indent(4) }}
-    {% endif %}
-{% endif %}
 
 Restart=on-failure
 RestartSec=10s
 TimeoutStopSec=20s
 SendSIGKILL=no
 
-SyslogIdentifier=prometheus
-
 AmbientCapabilities=
 CapabilityBoundingSet=
 DeviceAllow=/dev/null rw
 DevicePolicy=strict
 LimitMEMLOCK=0
-LimitNOFILE=32768
 LockPersonality=true
 MemoryDenyWriteExecute=true
 NoNewPrivileges=true

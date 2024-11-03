@@ -99,7 +99,7 @@ Options (= indicates it is required):
           default: null
           type: dict
 
-- prometheus_flags  Contents or list of flags to run prometheus with
+- prometheus_flags  List of flags to run prometheus with, as string or list
           default: null
           type: raw
 

@@ -1,0 +1,9 @@
+#jinja2: trim_blocks: "false", lstrip_blocks: "true"
+# {{ ansible_managed }}
+
+PROMETHEUS_ARGS='
+{% if prometheus_flags is string %}
+{{ prometheus_flags | trim }}
+{% else %}
+{{ prometheus_flags | join("\n") }}
+{% endif %}'
