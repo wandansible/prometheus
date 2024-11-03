@@ -126,7 +126,7 @@ argument_specs:
         type: dict
 
       prometheus_flags:
-        description: Contents or list of flags to run prometheus with
+        description: List of flags to run prometheus with, as string or list
         type: raw
 
       prometheus_extra_flags:

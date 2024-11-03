@@ -40,8 +40,8 @@
     body_format: json
   register: _release_info
 
-- name: "Get archive URL from GitHub release"
-  ansible.builtin.set_fact:
+- name: Download release archive
+  vars:
     _prometheus_archive_url: >-
       {{ _release_info.json.assets
          | selectattr("name", "search", "prometheus", ignorecase=true)
@@ -50,50 +50,58 @@
          | map(attribute='browser_download_url')
          | first
          | default(None) }}
-
-- name: "Get checksum URL from GitHub release"
-  ansible.builtin.set_fact:
+    _prometheus_archive_filename: "{{ _prometheus_archive_url | split('/') | last }}"
     _prometheus_checksum_url: >-
       {{ _release_info.json.assets
          | selectattr("name", "equalto", prometheus_github_checksum_filename)
          | map(attribute='browser_download_url')
          | first
          | default(None) }}
-
-- name: "Set archive filename"
-  ansible.builtin.set_fact:
-    _prometheus_archive_filename: "{{ _prometheus_archive_url | split('/') | last }}"
-
-- name: "Get archive checksum from URL"
-  ansible.builtin.set_fact:
     _prometheus_archive_checksum: >-
       {{ lookup('url', _prometheus_checksum_url, wantlist=True)
          | select('search', _prometheus_archive_filename)
          | first | default('') | split(' ') | first | default(None) }}
+  block:
+    - name: "Download archive"
+      ansible.builtin.get_url:
+        url: "{{ _prometheus_archive_url }}"
+        dest: "{{ prometheus_src_dir }}/{{ _prometheus_archive_filename }}"
+        checksum: "{{ prometheus_checksum_type }}:{{ _prometheus_archive_checksum }}"
+        owner: root
+        group: root
+        mode: u=rw,g=r,o=r
 
-- name: "Download archive"
-  ansible.builtin.get_url:
-    url: "{{ _prometheus_archive_url }}"
-    dest: "{{ prometheus_src_dir }}/{{ _prometheus_archive_filename }}"
-    checksum: "{{ prometheus_checksum_type }}:{{ _prometheus_archive_checksum }}"
-    owner: root
-    group: root
-    mode: u=rw,g=r,o=r
+    - name: "Extract files from archive"
+      ansible.builtin.unarchive:
+        src: "{{ prometheus_src_dir }}/{{ _prometheus_archive_filename }}"
+        remote_src: true
+        dest: "{{ prometheus_bin_dir }}"
+        extra_opts:
+          - "--strip-components={{ prometheus_strip_components }}"
+          - "--wildcards"
+          - "--no-anchored"
+          - "{{ item }}"
+        owner: root
+        group: root
+      loop: "{{ prometheus_src_files }}"
+      notify: "restart prometheus"
 
-- name: "Extract files from archive"
-  ansible.builtin.unarchive:
-    src: "{{ prometheus_src_dir }}/{{ _prometheus_archive_filename }}"
-    remote_src: true
-    dest: "{{ prometheus_bin_dir }}"
-    extra_opts:
-      - "--strip-components={{ prometheus_strip_components }}"
-      - "--wildcards"
-      - "--no-anchored"
-      - "{{ item }}"
-    owner: root
-    group: root
-  loop: "{{ prometheus_src_files }}"
-  notify: "restart prometheus"
+    - name: Get downloaded archive files
+      ansible.builtin.find:
+        paths: "{{ prometheus_src_dir }}"
+        patterns: "{{ '*' + _prometheus_archive_filename | splitext | last }}"
+      register: _prometheus_src_archives
+
+    - name: Remove older downloaded archive files
+      ansible.builtin.file:
+        path: "{{ item['path'] }}"
+        state: absent
+      loop: "{{ _prometheus_src_archives['files'] }}"
+      loop_control:
+        label: "{{ item['path'] }}"
+      when:
+        - "item['path'] | basename != _prometheus_archive_filename"
+        - "prometheus_clean_src_dir"
 
 - name: "Create symbolic links for CLI tool binaries in /usr/local/bin"
   ansible.builtin.file:
@@ -103,20 +111,3 @@
     group: root
     state: link
   loop: "{{ prometheus_cli_tools }}"
-
-- name: Get downloaded archive files
-  ansible.builtin.find:
-    paths: "{{ prometheus_src_dir }}"
-    patterns: "{{ '*' + _prometheus_archive_filename | splitext | last }}"
-  register: _prometheus_src_archives
-
-- name: Remove older downloaded archive files
-  ansible.builtin.file:
-    path: "{{ item['path'] }}"
-    state: absent
-  loop: "{{ _prometheus_src_archives['files'] }}"
-  loop_control:
-    label: "{{ item['path'] }}"
-  when:
-    - "item['path'] | basename != _prometheus_archive_filename"
-    - "prometheus_clean_src_dir"

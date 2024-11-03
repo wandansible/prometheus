@@ -6,11 +6,23 @@
     owner: root
     group: root
     mode: u=rw,g=r,o=r
+  register: _unit_file
+  notify: "restart prometheus"
+
+- name: "Add defaults file"
+  ansible.builtin.template:
+    src: defaults
+    dest: /etc/default/prometheus
+    owner: root
+    group: root
+    mode: u=rw,g=r,o=r
+  register: _defaults_file
   notify: "restart prometheus"
 
 - name: "Start and enable systemd service"
   ansible.builtin.systemd:
     name: "prometheus.service"
-    daemon_reload: true
+    daemon_reload: >-
+      {{ true if _unit_file is changed or _defaults_file is changed else false }}
     enabled: true
     state: started
