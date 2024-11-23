@@ -20,8 +20,6 @@ prometheus_strip_components: 1
 prometheus_src_files:
   - prometheus
   - promtool
-  - consoles
-  - console_libraries
 prometheus_clean_src_dir: true
 prometheus_cli_tools:
   - promtool
