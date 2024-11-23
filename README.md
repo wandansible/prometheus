@@ -199,7 +199,7 @@ Options (= indicates it is required):
           type: str
 
 - prometheus_src_files  List of files to extract from the source archive
-          default: [prometheus, promtool, consoles, console_libraries]
+          default: [prometheus, promtool]
           elements: str
           type: list
 

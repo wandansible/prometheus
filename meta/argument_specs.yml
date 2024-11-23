@@ -80,8 +80,6 @@ argument_specs:
         default:
           - prometheus
           - promtool
-          - consoles
-          - console_libraries
 
       prometheus_clean_src_dir:
         description: Remove old downloaded archive files from prometheus src directory

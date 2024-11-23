@@ -20,5 +20,3 @@
 {% if prometheus_external_url != "" %}
 --web.external-url="{{ prometheus_external_url }}"
 {% endif %}
---web.console.libraries="{{ prometheus_bin_dir }}/console_libraries"
---web.console.templates="{{ prometheus_bin_dir }}/consoles"
