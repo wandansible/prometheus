@@ -1,4 +1,4 @@
-#jinja2: trim_blocks: "false", lstrip_blocks: "true"
+#jinja2: trim_blocks: False, lstrip_blocks: True
 ---
 # {{ ansible_managed }}
 
