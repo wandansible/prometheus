@@ -45,6 +45,8 @@
         return_content: true
         status_code: 200
         body_format: json
+      retries: 6
+      delay: 15
       register: _release_info
 
     - name: Cache GitHub release information
@@ -82,6 +84,8 @@
         owner: root
         group: root
         mode: u=rw,g=r,o=r
+      retries: 6
+      delay: 15
 
     - name: "Extract files from archive"
       ansible.builtin.unarchive:
