@@ -102,6 +102,11 @@ argument_specs:
         type: str
         default: prometheus
 
+      prometheus_github_token:
+        description: Optional bearer token to use to authenticate with api.github.com
+        type: str
+        default: ""
+
       prometheus_github_checksum_filename:
         description: Filename for the prometheus package checksums file on github
         type: str

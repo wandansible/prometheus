@@ -29,21 +29,38 @@
     - "{{ prometheus_src_dir }}"
 
 - name: "Get GitHub release information"
-  ansible.builtin.uri:
-    url: >-
-      {{ "https://api.github.com/repos/" + prometheus_github_org + "/" + prometheus_github_repo
-         + "/releases"
-         + ("/tags" if prometheus_version != "latest" else "") + "/" + prometheus_version }}
-    method: GET
-    return_content: true
-    status_code: 200
-    body_format: json
-  register: _release_info
+  run_once: true
+  delegate_to: localhost
+  delegate_facts: true
+  when:
+    - "'github_prometheus_release_info' not in hostvars['localhost']['ansible_facts']"
+  block:
+    - name: "Get GitHub release information"
+      ansible.builtin.uri:
+        url: >-
+          {{ "https://api.github.com/repos/" + prometheus_github_org + "/" + prometheus_github_repo
+             + "/releases"
+             + ("/tags" if prometheus_version != "latest" else "") + "/" + prometheus_version }}
+        method: GET
+        return_content: true
+        status_code: 200
+        body_format: json
+        headers: >-
+          {{ {"authorization": "Bearer {{ prometheus_github_token }}"}
+             if prometheus_github_token != "" else {} }}
+      retries: 6
+      delay: 15
+      register: _release_info
+
+    - name: Cache GitHub release information
+      ansible.builtin.set_fact:
+        github_prometheus_release_info: "{{ _release_info.json }}"
+        cacheable: true
 
 - name: Download release archive
   vars:
     _prometheus_archive_url: >-
-      {{ _release_info.json.assets
+      {{ hostvars["localhost"]["ansible_facts"]["github_prometheus_release_info"].assets
          | selectattr("name", "search", "prometheus", ignorecase=true)
          | selectattr("name", "search", "linux", ignorecase=true)
          | selectattr("name", "search", prometheus_arch_map[ansible_architecture], ignorecase=true)
@@ -52,7 +69,7 @@
          | default(None) }}
     _prometheus_archive_filename: "{{ _prometheus_archive_url | split('/') | last }}"
     _prometheus_checksum_url: >-
-      {{ _release_info.json.assets
+      {{ hostvars["localhost"]["ansible_facts"]["github_prometheus_release_info"].assets
          | selectattr("name", "equalto", prometheus_github_checksum_filename)
          | map(attribute='browser_download_url')
          | first
@@ -70,6 +87,8 @@
         owner: root
         group: root
         mode: u=rw,g=r,o=r
+      retries: 6
+      delay: 15
 
     - name: "Extract files from archive"
       ansible.builtin.unarchive:

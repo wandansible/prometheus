@@ -8,6 +8,7 @@ prometheus_arch_map:
 
 prometheus_github_org: prometheus
 prometheus_github_repo: prometheus
+prometheus_github_token: ""
 prometheus_github_checksum_filename: sha256sums.txt
 prometheus_checksum_type: sha256
 

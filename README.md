@@ -11,7 +11,8 @@ ENTRY POINT: *main* - Install and configure prometheus
 
 Options (= indicates it is required):
 
-- prometheus_alerting_rule_files  List of prometheus alerting rule files to create
+- prometheus_alerting_rule_files  List of prometheus alerting rule
+                                   files to create
           default: [{name: general, rules: '{{ prometheus_alerting_rules_general }}'}, {name: prometheus,
               rules: '{{ prometheus_alerting_rules_prometheus }}'}, {name: alertmanager, rules: '{{
                 prometheus_alerting_rules_alertmanager }}'}, {name: node, rules: '{{ prometheus_alerting_rules_node
@@ -20,38 +21,46 @@ Options (= indicates it is required):
           type: list
           options:
 
-          = name            Name of alerting rule group
+          = name  Name of alerting rule group
             type: str
 
-          = rules            List of rule config, as string or list
+          = rules  List of rule config, as string or list
             type: raw
 
-- prometheus_alerting_rules_alertmanager  List of prometheus alerting rule config for alertmanager, as string
-                                           or list
+- prometheus_alerting_rules_alertmanager  List of prometheus alerting
+                                           rule config for
+                                           alertmanager, as string or
+                                           list
           default: null
           type: raw
 
-- prometheus_alerting_rules_blackbox  List of prometheus alerting rule config for blackbox exporter, as
-                                       string or list
+- prometheus_alerting_rules_blackbox  List of prometheus alerting
+                                       rule config for blackbox
+                                       exporter, as string or list
           default: null
           type: raw
 
-- prometheus_alerting_rules_general  List of general prometheus alerting rule config, as string or list
+- prometheus_alerting_rules_general  List of general prometheus
+                                      alerting rule config, as string
+                                      or list
           default: null
           type: raw
 
-- prometheus_alerting_rules_node  List of prometheus alerting rule config for node exporter, as string
+- prometheus_alerting_rules_node  List of prometheus alerting rule
+                                   config for node exporter, as string
                                    or list
           default: null
           type: raw
 
-- prometheus_alerting_rules_prometheus  List of prometheus alerting rule config for prometheus, as string or
-                                         list
+- prometheus_alerting_rules_prometheus  List of prometheus alerting
+                                         rule config for prometheus,
+                                         as string or list
           default: null
           type: raw
 
-- prometheus_arch_map  Mapping of the possible values of ansible_architecture to the
-                        prometheus package architectures
+- prometheus_arch_map  Mapping of the possible values of
+                        ansible_architecture to the prometheus package
+                        architectures
           default: null
           type: dict
 
@@ -63,16 +72,18 @@ Options (= indicates it is required):
           default: sha256
           type: str
 
-- prometheus_clean_src_dir  Remove old downloaded archive files from prometheus src directory
+- prometheus_clean_src_dir  Remove old downloaded archive files from
+                             prometheus src directory
           default: true
           type: bool
 
-- prometheus_cli_tools  List of CLI tool binaries that should have symlinks created in
-                         /usr/local/bin/
+- prometheus_cli_tools  List of CLI tool binaries that should have
+                         symlinks created in /usr/local/bin/
           default: [promtool]
           type: list
 
-- prometheus_config  Contents of the prometheus config file, as string or dict
+- prometheus_config  Contents of the prometheus config file, as
+                      string or dict
           default: null
           type: raw
 
@@ -88,10 +99,11 @@ Options (= indicates it is required):
           default: /var/lib/prometheus
           type: str
 
-- prometheus_external_url  The URL under which Prometheus is externally reachable (for example,
-                            if Prometheus is served via a reverse
-                            proxy). Used for generating relative and
-                            absolute links back to Prometheus itself.
+- prometheus_external_url  The URL under which Prometheus is
+                            externally reachable (for example, if
+                            Prometheus is served via a reverse proxy).
+                            Used for generating relative and absolute
+                            links back to Prometheus itself.
           default: null
           type: str
 
@@ -99,20 +111,29 @@ Options (= indicates it is required):
           default: null
           type: dict
 
-- prometheus_flags  List of flags to run prometheus with, as string or list
+- prometheus_flags  List of flags to run prometheus with, as string
+                     or list
           default: null
           type: raw
 
-- prometheus_github_checksum_filename  Filename for the prometheus package checksums file on github
+- prometheus_github_checksum_filename  Filename for the prometheus
+                                        package checksums file on
+                                        github
           default: sha256sums.txt
           type: str
 
-- prometheus_github_org  Name of organisation for prometheus github repository
+- prometheus_github_org  Name of organisation for prometheus github
+                          repository
           default: prometheus
           type: str
 
 - prometheus_github_repo  Name of prometheus github repository
           default: prometheus
+          type: str
+
+- prometheus_github_token  Optional bearer token to use to
+                            authenticate with api.github.com
+          default: ''
           type: str
 
 - prometheus_group  Name of the prometheus unix group
@@ -132,7 +153,8 @@ Options (= indicates it is required):
           default: logfmt
           type: str
 
-- prometheus_log_level  Only log messages with the given severity or above
+- prometheus_log_level  Only log messages with the given severity or
+                         above
           choices: [debug, info, warn, error]
           default: warn
           type: str
@@ -145,78 +167,89 @@ Options (= indicates it is required):
           default: 9090
           type: int
 
-- prometheus_recording_rule_files  List of prometheus recording rule files to create
+- prometheus_recording_rule_files  List of prometheus recording rule
+                                    files to create
           default: null
           elements: dict
           type: list
           options:
 
-          = name            Name of recording rule group
+          = name  Name of recording rule group
             type: str
 
-          = rules            List of rule config, as string or list
+          = rules  List of rule config, as string or list
             type: raw
 
-- prometheus_rules_dir  Directory for prometheus recording and alerting rule files
+- prometheus_rules_dir  Directory for prometheus recording and
+                         alerting rule files
           default: /etc/prometheus/rules
           type: str
 
-- prometheus_scrape_config_dir  Directory for prometheus scrape config files
+- prometheus_scrape_config_dir  Directory for prometheus scrape
+                                 config files
           default: /etc/prometheus/scrape_configs
           type: str
 
-- prometheus_scrape_config_files  List of prometheus scrape config files to create
+- prometheus_scrape_config_files  List of prometheus scrape config
+                                   files to create
           default: null
           elements: dict
           type: list
           options:
 
-          = name            Name of scrape config file
+          = name  Name of scrape config file
             type: str
 
-          = scrape_configs            List of prometheus scrape config, as string or list
+          = scrape_configs  List of prometheus scrape config, as
+                             string or list
             type: raw
 
 - prometheus_sd_dir  Directory for prometheus service discovery files
           default: /etc/prometheus/file_sd
           type: str
 
-- prometheus_sd_files  List of prometheus service discovery files to create
+- prometheus_sd_files  List of prometheus service discovery files to
+                        create
           default: null
           elements: dict
           type: list
           options:
 
-          = name            Name of service discovery file
+          = name  Name of service discovery file
             type: str
 
-          = static_configs            List of prometheus file service discovery config, as
-                             string or list
+          = static_configs  List of prometheus file service discovery
+                             config, as string or list
             type: raw
 
-- prometheus_src_dir  Directory for the downloaded prometheus src archive
+- prometheus_src_dir  Directory for the downloaded prometheus src
+                       archive
           default: /opt/prometheus/src
           type: str
 
-- prometheus_src_files  List of files to extract from the source archive
+- prometheus_src_files  List of files to extract from the source
+                         archive
           default: [prometheus, promtool]
           elements: str
           type: list
 
-- prometheus_storage_retention  How long to keep data for, specify as a number followed by time
-                                 unit. The units supported are y, w,
-                                 d, h, m, s, ms.
+- prometheus_storage_retention  How long to keep data for, specify as
+                                 a number followed by time unit. The
+                                 units supported are y, w, d, h, m, s,
+                                 ms.
           default: null
           type: str
 
-- prometheus_storage_retention_size  Maximum number of bytes that can be stored for blocks. A unit is
+- prometheus_storage_retention_size  Maximum number of bytes that can
+                                      be stored for blocks. A unit is
                                       required, supported units are B,
                                       KB, MB, GB, TB, PB, EB. Based on
                                       powers-of-2, so 1KB is 1024B.
           default: null
           type: str
 
-- prometheus_strip_components  Strip NUMBER leading components from file names on extraction
+- prometheus_strip_components  Strip NUMBER leading components from
+                                file names on extraction
           default: 1
           type: int
 
@@ -224,7 +257,8 @@ Options (= indicates it is required):
           default: prometheus
           type: str
 
-- prometheus_version  Version to install (use "latest" for the latest version)
+- prometheus_version  Version to install (use "latest" for the latest
+                       version)
           default: latest
           type: str
 ```
