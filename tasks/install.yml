@@ -45,6 +45,9 @@
         return_content: true
         status_code: 200
         body_format: json
+        headers: >-
+          {{ {"authorization": "Bearer {{ prometheus_github_token }}"}
+             if prometheus_github_token != "" else {} }}
       retries: 6
       delay: 15
       register: _release_info

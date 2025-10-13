@@ -131,6 +131,11 @@ Options (= indicates it is required):
           default: prometheus
           type: str
 
+- prometheus_github_token  Optional bearer token to use to
+                            authenticate with api.github.com
+          default: ''
+          type: str
+
 - prometheus_group  Name of the prometheus unix group
           default: prometheus
           type: str

@@ -6,6 +6,8 @@
       ansible.builtin.include_role:
         name: "wandansible.prometheus"
       vars:
+        prometheus_github_token: "{{ lookup('env', 'GITHUB_TOKEN') }}"
+
         prometheus_config:
           global:
             scrape_interval: 15s
