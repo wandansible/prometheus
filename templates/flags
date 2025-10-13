@@ -1,4 +1,4 @@
-#jinja2: trim_blocks: False, lstrip_blocks: True
+#jinja2: trim_blocks: True, lstrip_blocks: True
 {% for k, v in prometheus_extra_flags | dictsort %}
   {% if v == "" %}
 --{{ k }}
