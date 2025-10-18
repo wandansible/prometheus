@@ -32,10 +32,11 @@ jobs:
       - name: Setup python
         uses: actions/setup-python@v6
         with:
-          python-version: '3.x'
+          python-version: "3.x"
       - name: Install test dependencies
         run: pip3 install -r test-requirements.txt
       - name: Run molecule
         run: molecule test
         env:
           MOLECULE_DOCKER_IMAGE: ${{ matrix.target }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

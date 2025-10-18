@@ -12,6 +12,8 @@ platforms:
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:rw
     cgroupns_mode: host
+    env:
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-""}
 provisioner:
   name: ansible
   log: true
