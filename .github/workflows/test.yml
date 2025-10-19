@@ -24,8 +24,6 @@ jobs:
     strategy:
       matrix:
         target: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
-        exclude:
-          - target: debian:buster
     steps:
       - name: Checkout repo
         uses: actions/checkout@v5
