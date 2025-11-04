@@ -51,6 +51,7 @@
       retries: 6
       delay: 15
       register: _release_info
+      check_mode: false
 
     - name: Cache GitHub release information
       ansible.builtin.set_fact:
@@ -103,6 +104,7 @@
         owner: root
         group: root
       loop: "{{ prometheus_src_files }}"
+      ignore_errors: "{{ ansible_check_mode }}"
       notify: "restart prometheus"
 
     - name: Get downloaded archive files
