@@ -4,7 +4,7 @@
     name: "{{ prometheus_group }}"
     system: true
     state: present
-  when: prometheus_manage_user
+  when: prometheus_manage_user | bool
 
 - name: "Add system user"
   ansible.builtin.user:
@@ -15,7 +15,7 @@
     home: "{{ prometheus_bin_dir }}"
     createhome: false
     state: present
-  when: prometheus_manage_user
+  when: prometheus_manage_user | bool
 
 - name: "Create directories"
   ansible.builtin.file:
@@ -122,7 +122,7 @@
         label: "{{ item['path'] }}"
       when:
         - "item['path'] | basename != _prometheus_archive_filename"
-        - "prometheus_clean_src_dir"
+        - "prometheus_clean_src_dir | bool"
 
 - name: "Create symbolic links for CLI tool binaries in /usr/local/bin"
   ansible.builtin.file:
