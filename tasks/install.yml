@@ -64,7 +64,7 @@
       {{ hostvars["localhost"]["ansible_facts"]["github_prometheus_release_info"].assets
          | selectattr("name", "search", "prometheus", ignorecase=true)
          | selectattr("name", "search", "linux", ignorecase=true)
-         | selectattr("name", "search", prometheus_arch_map[ansible_architecture], ignorecase=true)
+         | selectattr("name", "search", prometheus_arch_map[ansible_facts.architecture], ignorecase=true)
          | map(attribute='browser_download_url')
          | first
          | default(None) }}
