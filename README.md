@@ -59,8 +59,8 @@ Options (= indicates it is required):
           type: raw
 
 - prometheus_arch_map  Mapping of the possible values of
-                        ansible_architecture to the prometheus package
-                        architectures
+                        ansible_facts.architecture to the prometheus
+                        package architectures
           default: null
           type: dict
 
