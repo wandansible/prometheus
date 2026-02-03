@@ -33,7 +33,7 @@
   delegate_to: localhost
   delegate_facts: true
   when:
-    - "'github_prometheus_release_info' not in hostvars['localhost']['ansible_facts']"
+    - "'github_prometheus_release_info' not in hostvars['localhost'].ansible_facts"
   block:
     - name: "Get GitHub release information"
       ansible.builtin.uri:
@@ -61,7 +61,7 @@
 - name: Download release archive
   vars:
     _prometheus_archive_url: >-
-      {{ hostvars["localhost"]["ansible_facts"]["github_prometheus_release_info"].assets
+      {{ hostvars["localhost"].ansible_facts.github_prometheus_release_info.assets
          | selectattr("name", "search", "prometheus", ignorecase=true)
          | selectattr("name", "search", "linux", ignorecase=true)
          | selectattr("name", "search", prometheus_arch_map[ansible_facts.architecture], ignorecase=true)
@@ -70,7 +70,7 @@
          | default(None) }}
     _prometheus_archive_filename: "{{ _prometheus_archive_url | split('/') | last }}"
     _prometheus_checksum_url: >-
-      {{ hostvars["localhost"]["ansible_facts"]["github_prometheus_release_info"].assets
+      {{ hostvars["localhost"].ansible_facts.github_prometheus_release_info.assets
          | selectattr("name", "equalto", prometheus_github_checksum_filename)
          | map(attribute='browser_download_url')
          | first
@@ -115,13 +115,13 @@
 
     - name: Remove older downloaded archive files
       ansible.builtin.file:
-        path: "{{ item['path'] }}"
+        path: "{{ item.path }}"
         state: absent
-      loop: "{{ _prometheus_src_archives['files'] }}"
+      loop: "{{ _prometheus_src_archives.files }}"
       loop_control:
-        label: "{{ item['path'] }}"
+        label: "{{ item.path }}"
       when:
-        - "item['path'] | basename != _prometheus_archive_filename"
+        - "item.path | basename != _prometheus_archive_filename"
         - "prometheus_clean_src_dir | bool"
 
 - name: "Create symbolic links for CLI tool binaries in /usr/local/bin"
