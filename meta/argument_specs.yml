@@ -107,6 +107,11 @@ argument_specs:
         type: str
         default: ""
 
+      prometheus_archive_extension:
+        description: File extension for the prometheus package archive
+        type: str
+        default: tar.gz
+
       prometheus_github_checksum_filename:
         description: Filename for the prometheus package checksums file on github
         type: str

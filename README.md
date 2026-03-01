@@ -64,6 +64,11 @@ Options (= indicates it is required):
           default: null
           type: dict
 
+- prometheus_archive_extension  File extension for the prometheus
+                                 package archive
+          default: tar.gz
+          type: str
+
 - prometheus_bin_dir  Directory for the prometheus binaries
           default: /opt/prometheus/
           type: str
