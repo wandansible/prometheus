@@ -76,12 +76,21 @@
          | map(attribute='browser_download_url')
          | first
          | default(None) }}
-    _prometheus_archive_checksum: >-
-      {{ lookup('url', _prometheus_checksum_url, wantlist=True)
-         | select('search', "\s"+_prometheus_archive_filename+"$")
-         | first | default('') | split(' ') | first | default(None) }}
   block:
+    - name: Get archive checksums
+      ansible.builtin.uri:
+        url: "{{ _prometheus_checksum_url }}"
+        return_content: true
+      register: _prometheus_archive_checksums
+      retries: 6
+      delay: 15
+
     - name: "Download archive"
+      vars:
+        _prometheus_archive_checksum: >-
+          {{ _prometheus_archive_checksums.content.splitlines()
+             | select('search', "\s"+_prometheus_archive_filename+"$")
+             | first | default('') | split(' ') | first | default(None) }}
       ansible.builtin.get_url:
         url: "{{ _prometheus_archive_url }}"
         dest: "{{ prometheus_src_dir }}/{{ _prometheus_archive_filename }}"
