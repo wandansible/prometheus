@@ -72,7 +72,7 @@
     _prometheus_archive_filename: "{{ _prometheus_archive_url | split('/') | last }}"
     _prometheus_checksum_url: >-
       {{ hostvars["localhost"].ansible_facts.github_prometheus_release_info.assets
-         | selectattr("name", "equalto", prometheus_github_checksum_filename)
+         | selectattr("name", "equalto", prometheus_checksum_filename)
          | map(attribute='browser_download_url')
          | first
          | default(None) }}
