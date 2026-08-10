@@ -73,6 +73,11 @@ Options (= indicates it is required):
           default: /opt/prometheus/
           type: str
 
+- prometheus_checksum_filename  Filename for the prometheus package
+                                 checksums file on github
+          default: sha256sums.txt
+          type: str
+
 - prometheus_checksum_type  The prometheus package checksum type
           default: sha256
           type: str
@@ -120,12 +125,6 @@ Options (= indicates it is required):
                      or list
           default: null
           type: raw
-
-- prometheus_github_checksum_filename  Filename for the prometheus
-                                        package checksums file on
-                                        github
-          default: sha256sums.txt
-          type: str
 
 - prometheus_github_org  Name of organisation for prometheus github
                           repository

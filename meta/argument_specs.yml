@@ -112,7 +112,7 @@ argument_specs:
         type: str
         default: tar.gz
 
-      prometheus_github_checksum_filename:
+      prometheus_checksum_filename:
         description: Filename for the prometheus package checksums file on github
         type: str
         default: sha256sums.txt
